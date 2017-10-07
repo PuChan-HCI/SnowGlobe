@@ -16,7 +16,9 @@
 #include "SDL_ttf.h"
 
 #include "sosg_image.h"
-#include "sosg_video.h"
+#ifdef USE_SOSG_VIDEO
+    #include "sosg_video.h"
+#endif /* USE_SOSG_VIDEO */
 #include "sosg_predict.h"
 #include "sosg_tracker.h"
 
@@ -52,7 +54,9 @@ typedef struct sosg_struct {
     // TODO: use function pointers for different sources
     union {
         sosg_image_p images;
+#ifdef USE_SOSG_VIDEO
         sosg_video_p video;
+#endif /* USE_SOSG_VIDEO */
         sosg_predict_p predict;
     } source;
     sosg_tracker_p tracker;
@@ -228,10 +232,12 @@ static void update_index(sosg_p data)
             sosg_image_get_resolution(data->source.images, data->texres);
             glUniform2f(data->ltexres, 1.0/(float)data->texres[0], 1.0/(float)data->texres[1]);
             break;
+#ifdef USE_SOSG_VIDEO
         case SOSG_VIDEO:
             sosg_video_set_index(data->source.video, data->index);
             // Video resolution is currently fixed, but this may change in the future
             break;
+#endif /* USE_SOSG_VIDEO */
         case SOSG_PREDICT:
             break;
     }
@@ -310,9 +316,11 @@ static void update_media(sosg_p data)
         case SOSG_IMAGES:
             surface = sosg_image_update(data->source.images);
             break;
+#ifdef USE_SOSG_VIDEO
         case SOSG_VIDEO:
             surface = sosg_video_update(data->source.video);
             break;
+#endif /* USE_SOSG_VIDEO */
         case SOSG_PREDICT:
             surface = sosg_predict_update(data->source.predict);
             break;
@@ -394,7 +402,9 @@ static void usage(sosg_p data)
     printf("Snow Globe information at: http://eclecti.cc\n\n");
     printf("    Input Data\n");
     printf("        -i     Display an image or slideshow (Default)\n");
+#ifdef USE_SOSG_VIDEO
     printf("        -v     Display a video or videos\n");
+#endif /* USE_SOSG_VIDEO */
     printf("        -p     Satellite tracking as a PREDICT client\n");
     printf("        -s     Optional string to overlay\n\n");
     printf("    Snow Globe Configuration\n");
@@ -419,9 +429,11 @@ static void cleanup(sosg_p data)
         case SOSG_IMAGES:
             sosg_image_destroy(data->source.images);
             break;
+#ifdef USE_SOSG_VIDEO
         case SOSG_VIDEO:
             sosg_video_destroy(data->source.video);
             break;
+#endif /* USE_SOSG_VIDEO */
         case SOSG_PREDICT:
             sosg_predict_destroy(data->source.predict);
             break;
@@ -458,9 +470,11 @@ int main(int argc, char *argv[])
             case 'i':
                 data->mode = SOSG_IMAGES;
                 break;
+#ifdef USE_SOSG_VIDEO
             case 'v':
                 data->mode = SOSG_VIDEO;
                 break;
+#endif /* USE_SOSG_VIDEO */
             case 'p':
                 data->mode = SOSG_PREDICT;
                 break;
@@ -523,10 +537,12 @@ int main(int argc, char *argv[])
             data->source.images = sosg_image_init(argc-optind, argv+optind);
             sosg_image_get_resolution(data->source.images, data->texres);
             break;
+#ifdef USE_SOSG_VIDEO
         case SOSG_VIDEO:
             data->source.video = sosg_video_init(argc-optind, argv+optind);
             sosg_video_get_resolution(data->source.video, data->texres);
             break;
+#endif /* USE_SOSG_VIDEO */
         case SOSG_PREDICT:
             data->source.predict = sosg_predict_init(filename);
             sosg_predict_get_resolution(data->source.predict, data->texres);
