@@ -76,8 +76,8 @@ typedef struct sosg_struct {
         sosg_predict_p predict;
     } source;
     sosg_tracker_p tracker;
+    uint32_t display;
     SDL_Window *window;
-    SDL_Renderer *renderer;
     SDL_Surface *screen;
     SDL_Surface *text;
     SDL_GLContext glcontext;
@@ -197,14 +197,21 @@ static int setup(sosg_p data)
 
     uint32_t flags = SDL_WINDOW_OPENGL;
 
+    uint32_t num_displays = SDL_GetNumVideoDisplays();
+    if (data->display >= num_displays) {
+        fprintf(stderr, "Error: Selected display index %d. %d displays available.\n", data->display, num_displays);
+        SDL_Quit();
+        return 1;
+    }
+
     if (data->fullscreen) {
-        data->window = SDL_CreateWindow("Science on a Snow Globe", SDL_WINDOWPOS_UNDEFINED,
-                                        SDL_WINDOWPOS_UNDEFINED, 0, 0,
+        data->window = SDL_CreateWindow("Science on a Snow Globe", SDL_WINDOWPOS_UNDEFINED_DISPLAY(data->display),
+                                        SDL_WINDOWPOS_UNDEFINED_DISPLAY(data->display), 0, 0,
                                         flags | SDL_WINDOW_FULLSCREEN_DESKTOP);
         if (data->window) SDL_GetWindowSize(data->window, &data->w, &data->h);
     } else {
-        data->window = SDL_CreateWindow("Science on a Snow Globe", SDL_WINDOWPOS_CENTERED,
-                                        SDL_WINDOWPOS_CENTERED, data->w, data->h, flags);
+        data->window = SDL_CreateWindow("Science on a Snow Globe",  SDL_WINDOWPOS_CENTERED_DISPLAY(data->display),
+                                         SDL_WINDOWPOS_CENTERED_DISPLAY(data->display), data->w, data->h, flags);
     }
 
     if (!data->window) {
@@ -212,13 +219,6 @@ static int setup(sosg_p data)
 		SDL_Quit();
 		return 1;
 	}
-
-    data->renderer = SDL_CreateRenderer(data->window, -1, SDL_RENDERER_PRESENTVSYNC);
-    if (!data->renderer) {
-        fprintf(stderr, "Error: Unable to create renderer: %s\n", SDL_GetError());
-        SDL_Quit();
-        return 1;
-    }
 
     data->glcontext = SDL_GL_CreateContext(data->window);
     if (!data->glcontext) {
@@ -450,6 +450,7 @@ static void usage(sosg_p data)
     printf("        -s     Optional string to overlay\n\n");
     printf("    Snow Globe Configuration\n");
     printf("        -f     Fullscreen\n");
+    printf("        -d     Display number to use (%d)\n", data->display);
     printf("        -w     Display width in pixels (%d)\n", data->w);
     printf("        -h     Display height in pixels (%d)\n", data->h);
     printf("        -r     Radius in ratio to height (%.3f)\n", data->radius);
@@ -508,7 +509,7 @@ int main(int argc, char *argv[])
     data->center[1] = 210.0/(float)data->h;
     data->rotation = M_PI;
     
-    while ((c = getopt(argc, argv, "ivpfs:w:g:r:x:y:o:t:")) != -1) {
+    while ((c = getopt(argc, argv, "ivpfd:s:w:g:r:x:y:o:t:")) != -1) {
         switch (c) {
             case 'i':
                 data->mode = SOSG_IMAGES;
@@ -523,6 +524,9 @@ int main(int argc, char *argv[])
                 break;
             case 'f':
                 data->fullscreen = 1;
+                break;
+            case 'd':
+                data->display = atoi(optarg);
                 break;
             case 's':
                 setup_overlay(data, optarg);
