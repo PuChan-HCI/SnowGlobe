@@ -157,11 +157,11 @@ static int load_shaders(sosg_p data)
     
     // Set the uniforms the fragment shader will need
     GLint loc = glGetUniformLocation(data->program, "radius");
-    glUniform1f(loc, data->radius/(float)data->h);
+    glUniform1f(loc, data->radius);
     loc = glGetUniformLocation(data->program, "height");
     glUniform1f(loc, data->height/data->radius);
     loc = glGetUniformLocation(data->program, "center");
-    glUniform2f(loc, data->center[0]/(float)data->w, data->center[1]/(float)data->h);
+    glUniform2f(loc, data->center[0], data->center[1]);
     loc = glGetUniformLocation(data->program, "ratio");
     glUniform1f(loc, (float)data->w/(float)data->h);
     data->ltexres = glGetUniformLocation(data->program, "texres");
@@ -195,10 +195,18 @@ static int setup(sosg_p data)
     data->time = SDL_GetTicks();
     SDL_ShowCursor(SDL_DISABLE);
 
-    uint32_t flags = SDL_WINDOW_OPENGL | (data->fullscreen ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0);
+    uint32_t flags = SDL_WINDOW_OPENGL;
 
-    data->window = SDL_CreateWindow("Science on a Snow Globe", SDL_WINDOWPOS_CENTERED,
-                                    SDL_WINDOWPOS_CENTERED, data->w, data->h, flags);
+    if (data->fullscreen) {
+        data->window = SDL_CreateWindow("Science on a Snow Globe", SDL_WINDOWPOS_UNDEFINED,
+                                        SDL_WINDOWPOS_UNDEFINED, 0, 0,
+                                        flags | SDL_WINDOW_FULLSCREEN_DESKTOP);
+        if (data->window) SDL_GetWindowSize(data->window, &data->w, &data->h);
+    } else {
+        data->window = SDL_CreateWindow("Science on a Snow Globe", SDL_WINDOWPOS_CENTERED,
+                                        SDL_WINDOWPOS_CENTERED, data->w, data->h, flags);
+    }
+
     if (!data->window) {
 		fprintf(stderr, "Error: Unable to create window: %s\n", SDL_GetError());
 		SDL_Quit();
@@ -211,9 +219,6 @@ static int setup(sosg_p data)
         SDL_Quit();
         return 1;
     }
-
-    SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "linear");
-    SDL_RenderSetLogicalSize(data->renderer, data->w, data->h);
 
     data->glcontext = SDL_GL_CreateContext(data->window);
     if (!data->glcontext) {
@@ -447,10 +452,10 @@ static void usage(sosg_p data)
     printf("        -f     Fullscreen\n");
     printf("        -w     Display width in pixels (%d)\n", data->w);
     printf("        -h     Display height in pixels (%d)\n", data->h);
-    printf("        -r     Radius in pixels (%.1f)\n", data->radius);
-    printf("        -x     X offset in pixels (%.1f)\n", data->center[0]);
-    printf("        -y     Y offset in pixels (%.1f)\n", data->center[1]);
-    printf("        -o     Lens offset in pixels (%.1f)\n\n", data->height);
+    printf("        -r     Radius in ratio to height (%.3f)\n", data->radius);
+    printf("        -x     X offset ratio to width (%.3f)\n", data->center[0]);
+    printf("        -y     Y offset ratio to height (%.3f)\n", data->center[1]);
+    printf("        -o     Lens offset ratio to height (%.3f)\n\n", data->height);
     printf("    Adjacent Reality Tracker (optional)\n");
     printf("        -t     Path to the Tracker device\n\n");
     printf("The left and right arrow keys can be used to rotate the sphere.\n");
@@ -497,10 +502,10 @@ int main(int argc, char *argv[])
     // Defaults are for my Snow Globe (not the only Snow Globe anymore!)
     data->w = 848;
     data->h = 480;
-    data->radius = 378.0;
-    data->height = 370.0;
-    data->center[0] = 431.0;
-    data->center[1] = 210.0;
+    data->radius = 378.0/(float)data->h;
+    data->height = 370.0/(float)data->h;
+    data->center[0] = 431.0/(float)data->w;
+    data->center[1] = 210.0/(float)data->h;
     data->rotation = M_PI;
     
     while ((c = getopt(argc, argv, "ivpfs:w:g:r:x:y:o:t:")) != -1) {
