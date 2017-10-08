@@ -248,7 +248,7 @@ sosg_tracker_p sosg_tracker_init(const char *device)
         }
         
         tracker->running = 1;
-        tracker->read_thread = SDL_CreateThread(tracker_read, tracker);
+        tracker->read_thread = SDL_CreateThread(tracker_read, "Read thread", tracker);
     }
     
     return tracker;

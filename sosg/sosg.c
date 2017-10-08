@@ -48,7 +48,7 @@ typedef struct sosg_struct {
     float center[2];
     float rotation;
     float drotation;
-    Uint32 time;
+    uint32_t time;
     int index;
     int mode;
     // TODO: use function pointers for different sources
@@ -60,8 +60,11 @@ typedef struct sosg_struct {
         sosg_predict_p predict;
     } source;
     sosg_tracker_p tracker;
+    SDL_Window *window;
+    SDL_Renderer *renderer;
     SDL_Surface *screen;
     SDL_Surface *text;
+    SDL_GLContext glcontext;
     GLuint texture;
     GLuint program;
     GLuint vertex;
@@ -174,18 +177,34 @@ static int setup(sosg_p data)
     }
     
     data->time = SDL_GetTicks();
-    SDL_EnableKeyRepeat(250, TICK_INTERVAL);
     SDL_ShowCursor(SDL_DISABLE);
-    
-    SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 
-    int flags = SDL_OPENGL | (data->fullscreen ? SDL_FULLSCREEN : 0);
-    data->screen = SDL_SetVideoMode(data->w, data->h, 32, flags);
-    if (!data->screen) {
-		fprintf(stderr, "Error: Unable to set video mode: %s\n", SDL_GetError());
+    uint32_t flags = SDL_WINDOW_OPENGL | (data->fullscreen ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0);
+
+    data->window = SDL_CreateWindow("Science on a Snow Globe", SDL_WINDOWPOS_CENTERED,
+                                    SDL_WINDOWPOS_CENTERED, data->w, data->h, flags);
+    if (!data->window) {
+		fprintf(stderr, "Error: Unable to create window: %s\n", SDL_GetError());
 		SDL_Quit();
 		return 1;
 	}
+
+    data->renderer = SDL_CreateRenderer(data->window, -1, SDL_RENDERER_PRESENTVSYNC);
+    if (!data->renderer) {
+        fprintf(stderr, "Error: Unable to create renderer: %s\n", SDL_GetError());
+        SDL_Quit();
+        return 1;
+    }
+
+    SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "linear");
+    SDL_RenderSetLogicalSize(data->renderer, data->w, data->h);
+
+    data->glcontext = SDL_GL_CreateContext(data->window);
+    if (!data->glcontext) {
+        fprintf(stderr, "Error: Unable to create GLContext: %s\n", SDL_GetError());
+        SDL_Quit();
+        return 1;
+    }
 	
     // Set the OpenGL state after creating the context with SDL_SetVideoMode
 	glClearColor(0, 0, 0, 0);
@@ -212,7 +231,7 @@ static int setup(sosg_p data)
 
 static void update_timer(sosg_p data)
 {
-    Uint32 now = SDL_GetTicks();
+    uint32_t now = SDL_GetTicks();
 
     if (data->time > now) {
         SDL_Delay(data->time - now);
@@ -247,6 +266,7 @@ static int handle_events(sosg_p data)
 {
     SDL_Event event;
     
+    // TODO: handle key repeat interval again
     while (SDL_PollEvent(&event)) {
         switch (event.type) {
             case SDL_KEYDOWN:
@@ -373,7 +393,7 @@ static void update_display(sosg_p data)
         glVertex3f(0, data->h, 0);
     glEnd();
 	
-    SDL_GL_SwapBuffers();
+    SDL_GL_SwapWindow(data->window);
 }
 
 static void update_input(sosg_p data)
@@ -442,6 +462,8 @@ static void cleanup(sosg_p data)
     // Now we can delete the OpenGL texture and close down SDL
     glDeleteTextures(1, &data->texture);
     if (data->text) SDL_FreeSurface(data->text);
+
+    if (data->glcontext) SDL_GL_DeleteContext(data->glcontext);
     SDL_Quit();
 }
 

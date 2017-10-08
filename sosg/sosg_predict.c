@@ -1,6 +1,6 @@
 #include "sosg_predict.h"
 #include "SDL_net.h"
-#include "SDL_gfxPrimitives.h"
+#include "SDL2_gfxPrimitives.h"
 #include "SDL_image.h"
 #include "SDL_ttf.h"
 #include <stdio.h>
@@ -218,19 +218,20 @@ static int sosg_predict_update_sats(sosg_predict_p predict)
     int i = 0;
     SDL_Rect pos;
     
-    for (i = 0; i < predict->num_sats; i++) {
-        int px = predict->sats[i].x;
-        int py = predict->sats[i].y;
-        if (!sosg_predict_update_sat(predict, predict->sats + i)) {
-            // draw a line segment from the last point to the new one if the
-            // satellite moved but didn't wrap around the screen
-            if ((px != predict->sats[i].x || py != predict->sats[i].y)
-             && (abs(predict->sats[i].x - px) < predict->path_surf->w/4))
-                thickLineColor(predict->path_surf, px, py, predict->sats[i].x,
-                    predict->sats[i].y, 5,
-                    (predict->sats[i].visibility == 'V' ? PREDICT_VISIBLE : PREDICT_HIDDEN));
-        }
-    }
+    // FIXME: Port this to SDL2_gfx
+    // for (i = 0; i < predict->num_sats; i++) {
+    //     int px = predict->sats[i].x;
+    //     int py = predict->sats[i].y;
+    //     if (!sosg_predict_update_sat(predict, predict->sats + i)) {
+    //         // draw a line segment from the last point to the new one if the
+    //         // satellite moved but didn't wrap around the screen
+    //         if ((px != predict->sats[i].x || py != predict->sats[i].y)
+    //          && (abs(predict->sats[i].x - px) < predict->path_surf->w/4))
+    //             thickLineColor(predict->path_surf, px, py, predict->sats[i].x,
+    //                 predict->sats[i].y, 5,
+    //                 (predict->sats[i].visibility == 'V' ? PREDICT_VISIBLE : PREDICT_HIDDEN));
+    //     }
+    // }
     
     // lock around blitting to the update_surf since it is used in the main thread
     SDL_mutexP(predict->update_lock);
@@ -240,10 +241,11 @@ static int sosg_predict_update_sats(sosg_predict_p predict)
         pos.x = predict->sats[i].x - predict->sat_icon->w/2;
         pos.y = predict->sats[i].y - predict->sat_icon->h/2;
         // highlight visible satellites
-        if (predict->sats[i].visibility == 'V') {
-            filledCircleColor(predict->update_surf, predict->sats[i].x, 
-                predict->sats[i].y, predict->sat_icon->w/2, PREDICT_VISIBLE);
-        }
+        // FIXME: Port this to SDL2_gfx
+        // if (predict->sats[i].visibility == 'V') {
+        //     filledCircleColor(predict->update_surf, predict->sats[i].x, 
+        //         predict->sats[i].y, predict->sat_icon->w/2, PREDICT_VISIBLE);
+        // }
         SDL_BlitSurface(predict->sat_icon, NULL, predict->update_surf, &pos);
         // put the name next to the icon
         pos.x += predict->sat_icon->w;
@@ -336,7 +338,7 @@ sosg_predict_p sosg_predict_init(const char *path)
         }
         
         predict->running = 1;
-        predict->client_thread = SDL_CreateThread(sosg_predict_client, predict);
+        predict->client_thread = SDL_CreateThread(sosg_predict_client, "Client thread", predict);
     }
     
     return predict;

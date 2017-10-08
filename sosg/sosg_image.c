@@ -75,7 +75,7 @@ sosg_image_p sosg_image_init(int num_paths, char *paths[])
         // If we still have more images left, load them in a new thread
         if (images->num_images > PRELOAD_IMAGES) {
             images->running = 1;
-            images->load_thread = SDL_CreateThread(sosg_image_load, images);
+            images->load_thread = SDL_CreateThread(sosg_image_load, "Loading thread", images);
         }
 
         images->index = 0;
