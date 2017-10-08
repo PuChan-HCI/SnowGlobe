@@ -1,15 +1,31 @@
-/* Science on a Snow Globe
- * by Nirav Patel <nrp@eclecti.cc>
- *
- * An extremely basic take on supporting Science On a Sphere datasets on
- * Snow Globe, a low cost DIY spherical display.
- * Datasets and SOS information available at http://sos.noaa.gov
- * Snow Globe information at http://eclecti.cc
- *
- * Parts are copied from some public domain code from
- * Kyle Foley: http://gpwiki.org/index.php/SDL:Tutorials:Using_SDL_with_OpenGL
- * John Tsiombikas: http://nuclear.mutantstargoat.com/articles/sdr_fract/
- */
+/*
+Filename:     sosg.c
+Content:      Science on a Snow Globe
+
+    An extremely basic take on supporting Science On a Sphere datasets on
+    Snow Globe, a low cost DIY spherical display.
+    Datasets and SOS information available at http://sos.noaa.gov
+    Snow Globe information at http://eclecti.cc
+
+    Parts are copied from some public domain code from
+    Kyle Foley: http://gpwiki.org/index.php/SDL:Tutorials:Using_SDL_with_OpenGL
+    John Tsiombikas: http://nuclear.mutantstargoat.com/articles/sdr_fract/
+
+Authors:      Nirav Patel
+Copyright:    Copyright (c) 2011-2017, Nirav Patel <nrp@eclecti.cc>
+
+    Permission to use, copy, modify, and/or distribute this software for any
+    purpose with or without fee is hereby granted, provided that the above
+    copyright notice and this permission notice appear in all copies.
+
+    THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+    WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+    MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+    ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+    WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+    ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+    OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+*/
 
 #include "SDL.h"
 #include "SDL_opengl.h"

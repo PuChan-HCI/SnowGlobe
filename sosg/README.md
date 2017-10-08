@@ -3,8 +3,7 @@ on Snow Globe, a low cost, open source, DIY spherical display.
 SOS Datasets available at: http://sos.noaa.gov
 Snow Globe information at: http://eclecti.cc
 
-USAGE
-==============================================================================
+# USAGE
 
 sosg [OPTION] [FILES]
 
@@ -31,35 +30,31 @@ Holding shift while using the arrows changes rotation speed.
 p will stop the rotation and r resets the angle.
 The up and down arrow keys go to the previous or next image in image mode.
 
-DEPENDENCIES
-==============================================================================
+# DEPENDENCIES
 
 I've tried to use cross platform libraries as much as possible, but I don't
 have anything but Linux to test it on.  It may just work elsewhere, but
 it probably requires some minor changes.
 
-SDL 1.2
-SDL image 1.2
-SDL net 1.2
-SDL gfx 2.0.22
-SDL ttf 2.0
-OpenGL 2.1
-libvlc 1.1.1
+ * SDL2
+ * SDL2_image
+ * SDL2_net
+ * SDL2_gfx
+ * SDL2_ttf
+ * OpenGL 2.1
+ * libvlc 1.1.1
 
-COMPILING
-==============================================================================
+# COMPILING
 
 make
 
-LICENSE
-==============================================================================
+# LICENSE
 
 satellite.png is CC-A from http://www.fatcow.com/free-icons/
 
 2048.jpg is uncopyrighted from NOAA
 
-All code
-------------------------------------------------------------------------------
+## All code
 Copyright (c) 2011, Nirav Patel <nrp@eclecti.cc>
 
 Permission to use, copy, modify, and/or distribute this software for any
@@ -74,8 +69,7 @@ WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
 ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-orbitron-black.fft
-------------------------------------------------------------------------------
+## orbitron-black.fft
 Copyright (c) 2009, Matt McInerney 
 (<http://pixelspread.com|matt@pixelspread.com>),
 with Reserved Font Name Orbitron.
