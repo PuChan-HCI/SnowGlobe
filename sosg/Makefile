@@ -1,7 +1,7 @@
 OBJS = sosg_image.o sosg_predict.o sosg_tracker.o
 CC = clang
 CFLAGS = -O3 -Wall `sdl2-config --cflags` -DGL_GLEXT_PROTOTYPES
-LDFLAGS = `sdl2-config --libs` -lSDL2_image -lSDL2_net -lSDL2_gfx -l SDL2_ttf
+LDFLAGS = `sdl2-config --libs` -lSDL2_image -lSDL2_net -lSDL2_gfx -lSDL2_ttf -lm
 
 ifdef USE_SOSG_VIDEO
 	OBJS := sosg_video.o
