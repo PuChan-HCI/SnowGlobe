@@ -58,7 +58,9 @@ typedef struct sosg_struct {
     int w;
     int h;
     int fullscreen;
+    int mirror;
     int texres[2];
+    float ratio;
     float radius;
     float height;
     float center[2];
@@ -163,13 +165,13 @@ static int load_shaders(sosg_p data)
     loc = glGetUniformLocation(data->program, "center");
     glUniform2f(loc, data->center[0], data->center[1]);
     loc = glGetUniformLocation(data->program, "ratio");
-    glUniform1f(loc, (float)data->w/(float)data->h);
+    glUniform1f(loc, data->ratio);
     data->ltexres = glGetUniformLocation(data->program, "texres");
     glUniform2f(data->ltexres, 1.0/(float)data->texres[0], 1.0/(float)data->texres[1]);
     data->lrotation = glGetUniformLocation(data->program, "rotation");
     
     return 0;
-}   
+}
 
 static void setup_overlay(sosg_p data, char *text)
 {
@@ -401,16 +403,16 @@ static void update_display(sosg_p data)
 
     // Just make a full screen quad, a canvas for the shader to draw on
     glBegin(GL_QUADS);
-        glTexCoord2i(0, 0);
+        glTexCoord2i(data->mirror, 0);
         glVertex3f(0, 0, 0);
     
-        glTexCoord2i(1, 0);
+        glTexCoord2i(!data->mirror, 0);
         glVertex3f(data->w, 0, 0);
     
-        glTexCoord2i(1, 1);
+        glTexCoord2i(!data->mirror, 1);
         glVertex3f(data->w, data->h, 0);
     
-        glTexCoord2i(0, 1);
+        glTexCoord2i(data->mirror, 1);
         glVertex3f(0, data->h, 0);
     glEnd();
 	
@@ -450,9 +452,11 @@ static void usage(sosg_p data)
     printf("        -s     Optional string to overlay\n\n");
     printf("    Snow Globe Configuration\n");
     printf("        -f     Fullscreen\n");
+    printf("        -m     Mirror horizontally\n");
     printf("        -d     Display number to use (%d)\n", data->display);
-    printf("        -w     Display width in pixels (%d)\n", data->w);
-    printf("        -h     Display height in pixels (%d)\n", data->h);
+    printf("        -w     Window width in pixels (%d)\n", data->w);
+    printf("        -h     Window height in pixels (%d)\n", data->h);
+    printf("        -a     Display aspect ratio (%.3f)\n", data->ratio);
     printf("        -r     Radius in ratio to height (%.3f)\n", data->radius);
     printf("        -x     X offset ratio to width (%.3f)\n", data->center[0]);
     printf("        -y     Y offset ratio to height (%.3f)\n", data->center[1]);
@@ -503,13 +507,14 @@ int main(int argc, char *argv[])
     // Defaults are for my Snow Globe (not the only Snow Globe anymore!)
     data->w = 848;
     data->h = 480;
+    data->ratio = (float)data->w/(float)data->h;
     data->radius = 378.0/(float)data->h;
     data->height = 370.0/(float)data->h;
     data->center[0] = 431.0/(float)data->w;
     data->center[1] = 210.0/(float)data->h;
     data->rotation = M_PI;
     
-    while ((c = getopt(argc, argv, "ivpfd:s:w:g:r:x:y:o:t:")) != -1) {
+    while ((c = getopt(argc, argv, "ivpfma:d:s:w:g:r:x:y:o:t:")) != -1) {
         switch (c) {
             case 'i':
                 data->mode = SOSG_IMAGES;
@@ -525,6 +530,9 @@ int main(int argc, char *argv[])
             case 'f':
                 data->fullscreen = 1;
                 break;
+            case 'm':
+                data->mirror = 1;
+                break;
             case 'd':
                 data->display = atoi(optarg);
                 break;
@@ -536,6 +544,9 @@ int main(int argc, char *argv[])
                 break;
             case 'h':
                 data->h = atoi(optarg);
+                break;
+            case 'a':
+                data->ratio = atof(optarg);
                 break;
             case 'r':
                 data->radius = atof(optarg);
