@@ -1,5 +1,4 @@
 OBJS = sosg_image.o sosg_predict.o sosg_tracker.o
-CC = clang
 CFLAGS = -O3 -Wall `sdl2-config --cflags` -DGL_GLEXT_PROTOTYPES
 LDFLAGS = `sdl2-config --libs` -lSDL2_image -lSDL2_net -lSDL2_gfx -lSDL2_ttf -lm
 
@@ -11,8 +10,10 @@ endif
 # Mac links OpenGL differently than Linux
 OS := $(shell uname)
 ifeq ($(OS),Darwin)
+	CC = clang
 	LDFLAGS := -framework OpenGL $(LDFLAGS)
 else
+	CC = gcc
 	LDFLAGS := -lGL -lGLU $(LDFLAGS)
 endif
 
