@@ -15,8 +15,11 @@ sosg [OPTION] [FILES]
 
     Snow Globe Configuration
         -f     Fullscreen
-        -w     Display width in pixels (848)
-        -h     Display height in pixels (480)
+        -m     Mirror horizontally
+        -d     Display number to use (0)
+        -w     Window width in pixels (848)
+        -h     Window height in pixels (480)
+        -a     Display aspect ratio (1.767)
         -r     Radius in pixels (378.0)
         -x     X offset in pixels (431.0)
         -y     Y offset in pixels (210.0)
@@ -55,7 +58,7 @@ satellite.png is CC-A from http://www.fatcow.com/free-icons/
 2048.jpg is uncopyrighted from NOAA
 
 ## All code
-Copyright (c) 2011, Nirav Patel <nrp@eclecti.cc>
+Copyright (c) 2011-2017, Nirav Patel <nrp@eclecti.cc>
 
 Permission to use, copy, modify, and/or distribute this software for any
 purpose with or without fee is hereby granted, provided that the above
