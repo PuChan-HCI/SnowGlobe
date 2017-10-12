@@ -341,6 +341,10 @@ static int handle_events(sosg_p data)
                         break;
                 }
                 break;
+            case SDL_MOUSEWHEEL:
+                data->index += event.wheel.y;
+                update_index(data);
+                break;
             case SDL_QUIT:
                 return -1;
             default:
