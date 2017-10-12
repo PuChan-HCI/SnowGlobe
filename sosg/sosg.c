@@ -195,7 +195,12 @@ static int setup(sosg_p data)
     }
     
     data->time = SDL_GetTicks();
+
+    // Have the cursor hidden and stuck inside the window
     SDL_ShowCursor(SDL_DISABLE);
+    if (SDL_SetRelativeMouseMode(1)) {
+        fprintf(stderr, "Warning: Unable to capture mouse: %s\n", SDL_GetError());
+    }
 
     uint32_t flags = SDL_WINDOW_OPENGL;
 
@@ -344,6 +349,9 @@ static int handle_events(sosg_p data)
             case SDL_MOUSEWHEEL:
                 data->index += event.wheel.y;
                 update_index(data);
+                break;
+            case SDL_MOUSEMOTION:
+                data->rotation -= (float)event.motion.xrel/(M_PI*50.0f);
                 break;
             case SDL_QUIT:
                 return -1;
