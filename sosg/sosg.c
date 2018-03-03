@@ -526,7 +526,7 @@ int main(int argc, char *argv[])
     data->center[1] = 210.0/(float)data->h;
     data->rotation = M_PI;
     
-    while ((c = getopt(argc, argv, "ivpfma:d:s:w:g:r:x:y:o:t:")) != -1) {
+    while ((c = getopt(argc, argv, "ivpfma:d:s:w:h:g:r:x:y:o:t:")) != -1) {
         switch (c) {
             case 'i':
                 data->mode = SOSG_IMAGES;
