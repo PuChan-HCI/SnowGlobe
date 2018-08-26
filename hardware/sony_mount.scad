@@ -34,10 +34,10 @@ boss_depth = 6.5;
 
 module gakken() {
     cylinder(r=gakken_lens_r, h=gakken_lens_h);
-    translate([18, 2, gakken_lens_h/2]) cylinder(r=0.8, h=gakken_lens_h/2, $fn=20);
-    translate([18, -9, gakken_lens_h/2]) cylinder(r=0.8, h=gakken_lens_h/2, $fn=20);
-    translate([-15, 2, gakken_lens_h/2]) cylinder(r=0.8, h=gakken_lens_h/2, $fn=20);
-    translate([-15, -9, gakken_lens_h/2]) cylinder(r=0.8, h=gakken_lens_h/2, $fn=20);
+    translate([18, 2, gakken_lens_h/2]) cylinder(r=0.5, h=gakken_lens_h/2, $fn=20);
+    translate([18, -9, gakken_lens_h/2]) cylinder(r=0.5, h=gakken_lens_h/2, $fn=20);
+    translate([-15, 2, gakken_lens_h/2]) cylinder(r=0.5, h=gakken_lens_h/2, $fn=20);
+    translate([-15, -9, gakken_lens_h/2]) cylinder(r=0.5, h=gakken_lens_h/2, $fn=20);
 }
 
 module sony() {
@@ -90,6 +90,7 @@ module lens_mount() difference() {
                     cube([gakken_lens_plate[0], gakken_lens_h, gakken_lens_plate[1]+wall]);
                 }
                 
+                // Mounting for a ELP-USBFHD01M camera
                 translate([-gakken_lens_center[0]-camera_w, -gakken_lens_h-camera_d, -gakken_lens_center[1]-wall]) {
                     difference() {
                         union() {
