@@ -3,104 +3,121 @@ import numpy
 import cv2
 import logging
 
-def get_frame(cap):
-	ret, image = cap.read()
-	return cv2.cvtColor(image,cv2.COLOR_BGR2GRAY)	
+class TouchCapture:
+        def __init__(self):
+            self.initialize_detector_params()
+            self.detector = cv2.SimpleBlobDetector_create(self.params)
 
-# Average a specified number of frames to mitigate noise
-def get_average_image(cap, num_frames):
-	image = get_frame(cap)
+        def open(self, camera):
+            self.cap = cv2.VideoCapture(camera)
+            # The Ailipu camera I used runs fastest at VGA
+            self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
+            self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
 
-	image = numpy.float32(image)/255.0
-	average = image.copy()
+            self.flush_frames()
+            self.reset_background(10)
+            self.update_frame()
 
-	for i in range(num_frames):
-	 	ret, image = cap.read()
-	 	image = cv2.cvtColor(image,cv2.COLOR_BGR2GRAY)
+        def get_frame(self):
+            ret, image = self.cap.read()
+            return cv2.cvtColor(image,cv2.COLOR_BGR2GRAY)   
 
-	 	image = numpy.float32(image)/255.0
-	 	cv2.accumulateWeighted(image, average, 1.0/num_frames)
+        def flush_frames(self):
+            # Flush some frames
+            for i in range(15):
+                self.get_frame()
 
-	average = numpy.uint8(average*255.0)
-	return average
+        # Create blob detector parameters hand tuned for this use case
+        def initialize_detector_params(self):
+            self.params = cv2.SimpleBlobDetector_Params()
+            self.params.filterByCircularity = True
+            self.params.minCircularity = 0.4
+            logging.debug("Circularity %d %d", self.params.minCircularity, self.params.maxCircularity)
 
-# Create blob detector parameters hand tuned for this use case
-def get_detector_params():
-	params = cv2.SimpleBlobDetector_Params()
+            self.params.filterByConvexity = True
+            self.params.minConvexity = 0.4
+            logging.debug("Convexity %d %d", self.params.minConvexity, self.params.maxConvexity)
 
-	params.filterByCircularity = True
-	params.minCircularity = 0.4
-	logging.debug("Circularity %d %d", params.minCircularity, params.maxCircularity)
+            self.params.filterByInertia = True
+            logging.debug("Inertia %d %d", self.params.minInertiaRatio, self.params.maxInertiaRatio)
 
-	params.filterByConvexity = True
-	params.minConvexity = 0.4
-	logging.debug("Convexity %d %d", params.minConvexity, params.maxConvexity)
+            self.params.filterByArea = True
+            self.params.minArea = 10
+            self.params.maxArea = 500
+            logging.debug("Area %d %d", self.params.minArea, self.params.maxArea)
 
-	params.filterByInertia = True
-	logging.debug("Inertia %d %d", params.minInertiaRatio, params.maxInertiaRatio)
+            self.params.minDistBetweenBlobs = 3.0
+            logging.debug("minDistBetweenBlobs %d", self.params.minDistBetweenBlobs)
 
-	params.filterByArea = True
-	params.minArea = 10
-	params.maxArea = 500
-	logging.debug("Area %d %d", params.minArea, params.maxArea)
+            self.params.minRepeatability = 2
+            logging.debug("minRepeatability %d", self.params.minRepeatability)
 
-	params.minDistBetweenBlobs = 3.0
-	logging.debug("minDistBetweenBlobs %d", params.minDistBetweenBlobs)
+            self.params.blobColor = 255
+            self.params.minThreshold = 10
+            self.params.maxThreshold = 60
+            self.params.thresholdStep = 5
+            logging.debug("Threshold %d %d %d", self.params.minThreshold, self.params.maxThreshold, self.params.thresholdStep)
 
-	params.minRepeatability = 2
-	logging.debug("minRepeatability %d", params.minRepeatability)
+        # Average a specified number of frames to mitigate noise
+        def reset_background(self, num_frames):
+            image = self.get_frame()
 
-	params.blobColor = 255
-	params.minThreshold = 10
-	params.maxThreshold = 60
-	params.thresholdStep = 5
-	logging.debug("Threshold %d %d %d", params.minThreshold, params.maxThreshold, params.thresholdStep)
+            image = numpy.float32(image)/255.0
+            average = image.copy()
 
-	return params
+            for i in range(num_frames):
+                image = self.get_frame()
+
+                image = numpy.float32(image)/255.0
+                cv2.accumulateWeighted(image, average, 1.0/num_frames)
+
+            self.background = numpy.uint8(average*255.0)
+
+        def update_frame(self):
+            # Capture frame-by-frame
+            self.frame = self.get_frame()
+            self.frame = cv2.subtract(self.frame, self.background)
+            return self.frame
+
+        def get_points(self):
+            # Update the blob detector
+            return self.detector.detect(self.frame)
+
+        def close(self):
+            self.cap.release()
+
 
 if __name__ == "__main__":
 
-	logging.basicConfig(level=logging.DEBUG)
+    logging.basicConfig(level=logging.DEBUG)
 
-	cap = cv2.VideoCapture(0)
-	# The Ailipu camera I used runs fastest at VGA
-	#cap.set(cv2.CAP_PROP_FOURCC , cv2.VideoWriter_fourcc(*'MJPG'))
-	cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
-	cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
+    capture = TouchCapture()
+    capture.open(1)
+    frame = capture.update_frame()
+    tick = cv2.getTickCount()
 
-	# Flush some frames
-	for i in range(10):
-		get_frame(cap)
+    while(True):
+        frame = capture.update_frame()
+        
+        keypoints = capture.get_points()
+        frame = cv2.drawKeypoints(frame, keypoints, numpy.array([]), (0,0,255), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
 
-	average = get_average_image(cap, 10)
+        # Display the resulting frame
+        cv2.imshow('frame', frame)
 
-	# Create a blob detector
-	params = get_detector_params()
-	detector = cv2.SimpleBlobDetector_create(params)
+        # Time the loop
+        new_tick = cv2.getTickCount()
+        t = (new_tick-tick)/cv2.getTickFrequency()
+        tick = new_tick
+        logging.debug("t {:05.3f} fps {:05.2f}".format(t, 1.0/t))
 
-	tick = cv2.getTickCount()
+        key = cv2.waitKey(1) & 0xFF
+        if key == ord('q'):
+            break
+        elif key == ord('b'):
+            # Reset the background image
+            capture.reset_background(10)
 
-	while(True):
-	    # Capture frame-by-frame
-	    frame = get_frame(cap)
-	    frame = cv2.subtract(frame, average)
-
-	    # Update the blob detector
-	    keypoints = detector.detect(frame)
-	    frame = cv2.drawKeypoints(frame, keypoints, numpy.array([]), (0,0,255), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
-
-	    # Display the resulting frame
-	    cv2.imshow('frame', frame)
-
-	    # Time the loop
-	    new_tick = cv2.getTickCount()
-	    t = (new_tick-tick)/cv2.getTickFrequency()
-	    tick = new_tick
-	    logging.debug("t {:05.3f} fps {:05.2f}".format(t, 1.0/t))
-
-	    if cv2.waitKey(1) & 0xFF == ord('q'):
-	        break
-
-	# When everything done, release the capture
-	cap.release()
-	cv2.destroyAllWindows()
+    # When everything done, release the capture
+    capture.close()
+    cv2.destroyAllWindows()
